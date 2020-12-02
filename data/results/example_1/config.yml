@@ -2,3 +2,4 @@ config_for: 'Example 1: data extraction from XML files'
 data_raw: 'data/raw/'
 data_processed: 'data/processed'
 results: 'data/results/example_1'
+database_rewrite: True
