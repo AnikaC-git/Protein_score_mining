@@ -36,7 +36,6 @@ def extract_publication_data_from_xml(file_path, database_conn):
         counter_publications += 1
         publication = {}
         for key, value in elem_of_interest.items():
-            print(f"{key} {value}")
             eoi = elem.xpath(value)        
             # only take first entry found
             if len(eoi) > 0:
