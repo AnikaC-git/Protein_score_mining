@@ -2,14 +2,15 @@
 Module that provides functionality for the extraction of text passages from Pubmed XML files. These XML
 files contain references for a large number of publications, where each publication may hold more or less
 specifying data. As a first attempt, the data that will be extracted for each publication, if present,
-are Pubmed ID, title, abstract, journal and publication data. The data will be held temporarily in 
-sqlite database for easier querying.
+are Pubmed ID, title, abstract, journal and publication year. The data will be held temporarily in
+SQLite database for easier querying.
 
-For now it is only XML files, but in the future, targetted support for PDF, docx or text files could be 
+For now it is only XML files, but in the future, targeted support for PDF, docx or text files could be
 added here. Though this would very likely require additional functionality to determine the structure 
 of the document, e.g. through processing Core Scientific Concepts such as those described 
 <a href="http://www.lrec-conf.org/proceedings/lrec2016/pdf/676_Paper.pdf">here</a>.
 """
+
 
 def extract_publication_data_from_xml(file_path, database_conn):
     """
@@ -23,14 +24,19 @@ def extract_publication_data_from_xml(file_path, database_conn):
     elem_of_interest = {
         'PMID': 'MedlineCitation/PMID',
         'abstract': 'MedlineCitation/Article/Abstract/AbstractText',
-        'title': '',
-        'journal': '',
-        'pub_date': ''
+        'title': 'MedlineCitation/Article/ArticleTitle',
+        'journal': 'MedlineCitation/Article/Journal/Title',
+        'pub_date_year': 'MedlineCitation/Article/Journal/JournalIssue/PubDate/Year'
     }
-    
+
+    counter_publications = 0
+    counter_publications_incomplete = 0
+
     for event, elem in context:
+        counter_publications += 1
         publication = {}
-        for key, value in elem_of_interest:
+        for key, value in elem_of_interest.items():
+            print(f"{key} {value}")
             eoi = elem.xpath(value)        
             # only take first entry found
             if len(eoi) > 0:
@@ -39,17 +45,29 @@ def extract_publication_data_from_xml(file_path, database_conn):
                 break
         
         if len(publication) == len(elem_of_interest):
-            save_publication_to_database(publication, database_conn)
+            print(publication)
+            # save_publication_to_database(publication, database_conn)
+        else:
+            counter_publications_incomplete += 1
         
         # deleting the element and any references to it to speed up the process of extraction
         elem.clear()
         while elem.getprevious() is not None:
             del elem.getparent()[0]
+
+    print(f"Total number of publications found: {counter_publications}")
+    print(f"Total number of incomplete publications found: {counter_publications_incomplete}")
                           
                 
 def save_publication_to_database(data: dict, database_conn):
     """
     Save data extracted about a publication from one of the data sources to the publication database.
+
+    :param data: publication data to be stored in database
+    :type: dict
+    :param database_conn: connector to database data should be stored in
+    :type: conn
+    :return: True if record stored successfully, otherwise False
+    :rtype: bool
     """
     pass
-                
