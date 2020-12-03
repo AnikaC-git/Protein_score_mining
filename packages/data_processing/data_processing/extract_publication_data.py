@@ -12,10 +12,15 @@ of the document, e.g. through processing Core Scientific Concepts such as those 
 """
 
 
-def extract_publication_data_from_xml(file_path, database_conn):
+def extract_publication_data_from_xml(file_path, db_conn):
     """
     Extracts title, abstract, journal and so on for a publication contained in the Pubmed XML file.
     Provides summary information at the end about how many publications have been identified.
+
+    :param file_path:
+    :type:
+    :param db_conn:
+    :type:
     """
     # todo: the approach for identifying relevant parts of the publication is very simplistic and 
     #  not very foolproof for now and should be changed going forward
@@ -39,13 +44,14 @@ def extract_publication_data_from_xml(file_path, database_conn):
             eoi = elem.xpath(value)        
             # only take first entry found
             if len(eoi) > 0:
-                publication[key] = eoi[0].text
+                if eoi[0].text is not None:
+                    publication[key] = eoi[0].text
             else:
                 break
         
         if len(publication) == len(elem_of_interest):
-            print(publication)
-            # save_publication_to_database(publication, database_conn)
+            print(publication['PMID'])
+            save_publication_to_database(publication, db_conn)
         else:
             counter_publications_incomplete += 1
         
@@ -58,15 +64,22 @@ def extract_publication_data_from_xml(file_path, database_conn):
     print(f"Total number of incomplete publications found: {counter_publications_incomplete}")
                           
                 
-def save_publication_to_database(data: dict, database_conn):
+def save_publication_to_database(data: dict, db_conn):
     """
     Save data extracted about a publication from one of the data sources to the publication database.
 
     :param data: publication data to be stored in database
     :type: dict
-    :param database_conn: connector to database data should be stored in
+    :param db_conn: connector to database data should be stored in
     :type: conn
     :return: True if record stored successfully, otherwise False
     :rtype: bool
     """
-    pass
+    c = db_conn.cursor()
+    stm = f"INSERT INTO publications(pmid,pub_abstract,title,journal,pub_year) " \
+          f"VALUES(?,?,?,?,?)"
+
+    try:
+        c.execute(stm, (data['PMID'], data['abstract'], data['title'], data['journal'], data['pub_date_year']))
+    except Exception as e:
+        pass

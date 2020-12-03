@@ -27,3 +27,41 @@ def create_database_connection(_db_file):
     except Error as e:
         print(e)
         sys.exit()
+
+
+def create_table(db_conn, create_table_sql: str):
+    """
+    Creates a connection to a database file and returns the connector. Should an error be an encountered while trying
+    to connect to the database, the program is aborted.
+
+    :param db_conn: connection to database file
+    :type: connector
+    :param create_table_sql: SQL statement for generating table
+    :type: str
+    """
+    try:
+        c = db_conn.cursor()
+        c.execute(create_table_sql)
+    except Error as e:
+        db_conn.close()
+        print(e)
+        sys.exit()
+
+
+def delete_table_content(db_conn, table_name: str):
+    """
+    Creates a connection to a database file and returns the connector. Should an error be an encountered while trying
+    to connect to the database, the program is aborted.
+
+    :param db_conn: connection to database file
+    :type: connector
+    :param table_name: name of the table of which content should be deleted
+    :type: str
+    """
+
+    try:
+        c = db_conn.cursor()
+        c.execute(f"DELETE FROM {table_name}")
+    except Error as e:
+        print(e)
+        sys.exit()

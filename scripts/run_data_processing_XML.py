@@ -11,6 +11,9 @@ from data_processing.extract_publication_data import extract_publication_data_fr
 from protein_score_utilities.convenience_functions_files import read_config
 from protein_score_utilities.convenience_functions_files import read_xml_file_names
 from protein_score_utilities.convenience_functions_database import create_database_connection
+from protein_score_utilities.convenience_functions_database import create_table
+from protein_score_utilities.convenience_functions_database import delete_table_content
+
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
@@ -23,9 +26,18 @@ if __name__ == "__main__":
     config = read_config(sys.argv[1])
     fnames = read_xml_file_names(config['data_raw'])
 
-    # todo: add handling for database reset depending on config; add message for when database is regenerated
+    # setting up database to write extracted data to
     db_conn = create_database_connection(config['data_processed'] + config['db_file'])
+    sql_create_table = "CREATE TABLE IF NOT EXISTS publications (pmid integer PRIMARY KEY, " \
+                       "pub_abstract text NOT NULL, journal text NOT NULL, title text NOT NULL, " \
+                       "pub_year text NOT NULL);"
+
+    create_table(db_conn, sql_create_table)
+    if config['database_rewrite']:
+        delete_table_content(db_conn, 'publications')
 
     for fname in fnames:
         print(fname)
         extract_publication_data_from_xml(str(fname), db_conn)
+
+    db_conn.close()
