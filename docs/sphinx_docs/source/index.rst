@@ -10,7 +10,8 @@ Welcome to Protein score mining's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-
+   data_processing
+   protein_score_utilities
 
 Indices and tables
 ==================

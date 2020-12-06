@@ -10,10 +10,19 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-# import os
-# import sys
-# sys.path.insert(0, os.path.abspath('.'))
+import pathlib
+import sys
 
+target_dir = pathlib.Path(__file__).parent.parent.resolve()
+sys.path.insert(0, target_dir)
+
+dataproc_dir = pathlib.Path.joinpath(target_dir, "packages.data_processing")
+protutil_dir = pathlib.Path.joinpath(target_dir, "packages.protein_score_utilities")
+
+package_paths = [dataproc_dir, protutil_dir]
+
+for p in package_paths:
+    sys.path.insert(0, p)
 
 # -- Project information -----------------------------------------------------
 
@@ -27,8 +36,7 @@ author = 'Anika Cawthorn'
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = [
-]
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.doctest', 'sphinx.ext.intersphinx']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -38,6 +46,7 @@ templates_path = ['_templates']
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = []
 
+intersphinx_mapping = {'python': ('https://docs.python.org/3', None)}
 
 # -- Options for HTML output -------------------------------------------------
 
