@@ -4,4 +4,5 @@ literature/
 .idea/
 *__pycache__/
 *.ipynb_checkpoints/
+packages/data_processing/data_processing/tests/test_extract_publication_data_from_xml.db
 
