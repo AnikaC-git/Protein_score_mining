@@ -1,6 +1,6 @@
 config_for: 'Example 1: data extraction from XML files'  # string characterising the experiment, to be used in logs
 data_raw: 'data/raw/'  # folder containing the Pubmed data; going forward also articles
-data_processed: 'data/processed'  # folder for processed data to make protein scoring easier
+data_processed: 'data/processed/'  # folder for processed data to make protein scoring easier
 db_file: 'publication_data.sql'  # database file to be created in data_processed to hold publication relevant data
 results: 'data/results/example_1'  # folder results will be written to
 database_rewrite: True  # boolean to indicate whether database should be generated afresh
