@@ -8,6 +8,8 @@ specifying data. As a first attempt, the data that will be extracted for each pu
 title, abstract, journal and publication year. The data will be held temporarily in SQLite database for easier querying.
 """
 
+from protein_score_utilities.convenience_functions_database import execute_insert_statement
+
 
 def extract_publication_data_from_xml(file_path: str, db_conn):
     """
@@ -23,6 +25,8 @@ def extract_publication_data_from_xml(file_path: str, db_conn):
     #  not very foolproof for now and should be changed going forward
     from lxml import etree
     context = etree.iterparse(file_path, events=('end',), tag="PubmedArticle")
+
+    print(f"Starting data extraction for file {file_path}")
 
     # fields that are required for each extracted publication in order to be stored
     # key is the internal reference and value the path of the element within the XML element
@@ -56,6 +60,8 @@ def extract_publication_data_from_xml(file_path: str, db_conn):
 
         # only store publication in database if all the relevant data fields have been extracted
         if len(publication) == len(elem_of_interest):
+            # todo: there are a number of integrity errors raised through duplicated PMIDs that would need to be
+            #  further investigated
             save_publication_to_database(publication, db_conn)
         else:
             counter_publications_incomplete += 1
@@ -81,11 +87,8 @@ def save_publication_to_database(data: dict, db_conn):
     :return: True if record stored successfully, otherwise False
     :rtype: bool
     """
-    c = db_conn.cursor()
-    stm = f"INSERT INTO publications(pmid,pub_abstract,title,journal,pub_year) " \
-          f"VALUES(?,?,?,?,?)"
 
-    try:
-        c.execute(stm, (data['PMID'], data['abstract'], data['title'], data['journal'], data['pub_date_year']))
-    except Exception as e:
-        pass
+    stm = "INSERT INTO publications(pmid,pub_abstract,title,journal,pub_year) VALUES(?,?,?,?,?)"
+
+    execute_insert_statement(db_conn, stm, (data['PMID'], data['abstract'], data['title'], data['journal'],
+                                            data['pub_date_year']))
