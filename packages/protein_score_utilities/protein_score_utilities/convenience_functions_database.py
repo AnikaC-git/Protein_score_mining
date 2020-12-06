@@ -1,7 +1,7 @@
 """
-Functionality to effectively interact with SQLite database where extracted data from articles will be stored into.
-It contains functions to connect as well as clear the database, should it be desired to run the complete pipeline at
-once, for example, for a subset of articles.
+Functionality interact with SQLite database where extracted data from articles will be stored into. For the moment,
+the module contains functionality to connect to a database, create tables, delete table content and insert data into
+tables.
 """
 
 import sqlite3
@@ -9,6 +9,7 @@ import sys
 
 from sqlite3 import Error
 from sqlite3 import IntegrityError
+
 
 def create_database_connection(db_file):
     """
@@ -31,13 +32,13 @@ def create_database_connection(db_file):
 
 def create_table(db_conn, create_table_sql: str):
     """
-    Creates a connection to a database file and returns the connector. Should an error be an encountered while trying
-    to connect to the database, the program is aborted.
+    Creates a table in the database to which a connection has been established before. Should an error be encountered
+    while trying to create the table, the program is aborted.
 
-    :param db_conn: connection to database file
-    :type: connector
+    :param db_conn: connection to the database extracted publication information should be written to
+    :type db_conn: :class:~`sqlite3.Connection`
     :param create_table_sql: SQL statement for generating table
-    :type: str
+    :type create_table_sql: str
     """
     try:
         c = db_conn.cursor()
@@ -50,13 +51,13 @@ def create_table(db_conn, create_table_sql: str):
 
 def delete_table_content(db_conn, table_name: str):
     """
-    Creates a connection to a database file and returns the connector. Should an error be an encountered while trying
-    to connect to the database, the program is aborted.
+    Deletes the content of a database table, e.g. when the data should be extracted afresh. Should an error be an
+    encountered while trying to erase the content of the table, the program is aborted.
 
-    :param db_conn: connection to database file
-    :type: connector
+    :param db_conn: connection to the database extracted publication information should be written to
+    :type db_conn: :class:~`sqlite3.Connection`
     :param table_name: name of the table of which content should be deleted
-    :type: str
+    :type table_name: str
     """
 
     try:
@@ -70,7 +71,8 @@ def delete_table_content(db_conn, table_name: str):
 
 def execute_insert_statement(db_conn, stm: str, data: tuple):
     """
-    Executes statement
+    Inserts data into a table based on the insert statement and data provided. Should an error other than
+    IntegrityErrors (e.g. through duplicated primary keys be encountered), the program will be aborted.
 
     :param db_conn: connection to database file
     :type db_conn: connector
@@ -85,6 +87,8 @@ def execute_insert_statement(db_conn, stm: str, data: tuple):
         c.execute(stm, data)
     except IntegrityError as e:
         # errors are raised when an entry is attempted with an already existing primary key
+        # todo: this is at the moment to support import to continue with existing data issues; going forward better
+        #  handling of the data issues should be decided after investigation
         print(stm)
         print(data)
         pass
