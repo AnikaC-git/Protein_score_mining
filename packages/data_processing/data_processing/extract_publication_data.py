@@ -1,7 +1,7 @@
 """
 Module that provides functionality for the extraction of publication records. While different formats for publication
 sources will be supported in the future, the only functionality available at present is for the extraction of data from
-<a href="https://pubmed.ncbi.nlm.nih.gov/help/#download-pubmed-data">Pubmed XML files</a>.
+`Pubmed XML files <https://pubmed.ncbi.nlm.nih.gov/help/#download-pubmed-data>`_.
 
 These XML files contain references for a large number of publications, where each publication may hold more or less
 specifying data. As a first attempt, the data that will be extracted for each publication, if present, are Pubmed ID,
