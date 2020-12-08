@@ -7,3 +7,6 @@ installed as part of the environment to use its functionality. To install a pack
 the root directory of the repository (where <package_name> is to be replaced with the respective package name):
 
 pip install -e ./packages/<package_name>/
+
+For a specification of what functionality individual packages provide, please the README files of the individual 
+packages.
