@@ -26,6 +26,12 @@ class Publication:
         self.pub_year = None
 
     def has_all_attributes(self):
+        """
+        Checking whether all the required attributes for the publication have been set.
+
+        :return: True if all the required attribures for the publication have been added, otherwise False
+        :rtype: bool
+        """
         return all(k is not None for k in (self.pmid, self.abstract_text, self.title, self.journal, self.pub_year))
 
     def save_publication_to_database(self, db_conn):
@@ -75,7 +81,7 @@ def extract_publication_data_from_xml(file_path: str, db_conn):
 
     # add counters for summary stats
     counter_publications = 0
-    counter_publications_incomplete = 0
+    counter_publications_incomplete = 0  # does not account for publications that might 
 
     # go through all the publications found in the XML file
     for event, elem in context:
