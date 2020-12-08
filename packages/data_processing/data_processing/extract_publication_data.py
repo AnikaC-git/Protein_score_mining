@@ -81,7 +81,7 @@ def extract_publication_data_from_xml(file_path: str, db_conn):
 
     # add counters for summary stats
     counter_publications = 0
-    counter_publications_incomplete = 0  # does not account for publications that might 
+    counter_publications_incomplete = 0  # does not account for publications that might
 
     # go through all the publications found in the XML file
     for event, elem in context:
