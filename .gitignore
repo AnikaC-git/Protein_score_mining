@@ -1,2 +1,9 @@
 data/
 literature/
+*.egg-info/
+.idea/
+*__pycache__/
+*.ipynb_checkpoints/
+packages/data_processing/data_processing/tests/test_extract_publication_data_from_xml.db
+docs/sphinx_docs/build
+
