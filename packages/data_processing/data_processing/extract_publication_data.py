@@ -15,17 +15,18 @@ class Publication:
     """
     Data capsule for holding data relevant to a publication.
     """
-    def __init__(self):
-        """
-        Initialising all the attributes with None.
-        """
-        self.pmid = None
-        self.abstract_text = None
-        self.title = None
-        self.journal = None
-        self.pub_year = None
 
-    def has_all_attributes(self):
+    def __init__(self, _pmid=None, _abstract_text=None, _title=None, _journal=None, _pub_year=None):
+        """
+        Initialising all the attributes with data provided.
+        """
+        self.pmid = str(_pmid) if _pmid is not None else _pmid
+        self.abstract_text = str(_abstract_text) if _abstract_text is not None else _abstract_text
+        self.title = str(_title) if _title is not None else _title
+        self.journal = str(_journal) if _journal is not None else _journal
+        self.pub_year = str(_pub_year) if _pub_year is not None else _pub_year
+
+    def _has_all_attributes(self):
         """
         Checking whether all the required attributes for the publication have been set.
 
@@ -48,8 +49,12 @@ class Publication:
 
         stm = "INSERT INTO publications(pmid,pub_abstract,title,journal,pub_year) VALUES(?,?,?,?,?)"
 
-        execute_insert_statement(db_conn, stm, (self.pmid, self.abstract_text, self.title, self.journal,
-                                                self.pub_year))
+        if self._has_all_attributes():
+            execute_insert_statement(db_conn, stm, (self.pmid, self.abstract_text, self.title, self.journal,
+                                                    self.pub_year))
+            return True
+        else:
+            return False
 
 
 def extract_publication_data_from_xml(file_path: str, db_conn):
@@ -65,54 +70,53 @@ def extract_publication_data_from_xml(file_path: str, db_conn):
     # todo: the approach for identifying relevant parts of the publication is very simplistic and 
     #  not very foolproof for now and should be changed going forward
     from lxml import etree
-    context = etree.iterparse(file_path, events=('end',), tag="PubmedArticle")
+    try:
+        context = etree.iterparse(file_path, events=('end',), tag="PubmedArticle")
 
-    print(f"Starting data extraction for file {file_path}")
+        print(f"Starting data extraction for file {file_path}")
 
-    # fields that are required for each extracted publication in order to be stored
-    # key is the internal reference and value the path of the element within the XML element
-    elem_of_interest = {
-        'pmid': 'MedlineCitation/PMID',
-        'abstract_text': 'MedlineCitation/Article/Abstract/AbstractText',
-        'title': 'MedlineCitation/Article/ArticleTitle',
-        'journal': 'MedlineCitation/Article/Journal/Title',
-        'pub_year': 'MedlineCitation/Article/Journal/JournalIssue/PubDate/Year'
-    }
+        # fields that are required for each extracted publication in order to be stored
+        # key is the internal reference and value the path of the element within the XML element
+        elem_of_interest = {
+            'pmid': 'MedlineCitation/PMID',
+            'abstract_text': 'MedlineCitation/Article/Abstract/AbstractText',
+            'title': 'MedlineCitation/Article/ArticleTitle',
+            'journal': 'MedlineCitation/Article/Journal/Title',
+            'pub_year': 'MedlineCitation/Article/Journal/JournalIssue/PubDate/Year'
+        }
 
-    # add counters for summary stats
-    counter_publications = 0
-    counter_publications_incomplete = 0  # does not account for publications that might
+        # add counters for summary stats
+        counter_publications = 0
+        counter_publications_incomplete = 0  # does not account for publications that might
 
-    # go through all the publications found in the XML file
-    for event, elem in context:
-        counter_publications += 1
-        publication = Publication()
+        # go through all the publications found in the XML file
+        for event, elem in context:
+            counter_publications += 1
+            publication = Publication()
 
-        # attempt to extract all the relevant fields for each publication
-        for key, value in elem_of_interest.items():
-            eoi = elem.xpath(value)        
-            # only take first entry found
-            # todo: this needs to be expanded, handled more carefully and details logged once logger is in place
-            if len(eoi) > 0:
-                if eoi[0].text is not None:
-                    publication.__setattr__(key, eoi[0].text)
-            else:
-                break
+            # attempt to extract all the relevant fields for each publication
+            for key, value in elem_of_interest.items():
+                eoi = elem.xpath(value)
+                # only take first entry found
+                # todo: this needs to be expanded, handled more carefully and details logged once logger is in place
+                if len(eoi) > 0:
+                    if eoi[0].text is not None:
+                        publication.__setattr__(key, eoi[0].text)
+                else:
+                    break
 
-        # only store publication in database if all the relevant data fields have been extracted
-        if publication.has_all_attributes():
             # todo: there are a number of integrity errors raised through duplicated PMIDs that would need to be
             #  further investigated
-            publication.save_publication_to_database(db_conn)
-        else:
-            counter_publications_incomplete += 1
-        
-        # deleting the element and any references to it to speed up the process of extraction
-        elem.clear()
-        while elem.getprevious() is not None:
-            del elem.getparent()[0]
+            if not publication.save_publication_to_database(db_conn):
+                counter_publications_incomplete += 1
 
-    # print summary statistics
-    print(f"Total number of publications found: {counter_publications}")
-    print(f"Total number of incomplete publications found: {counter_publications_incomplete}")
+            # deleting the element and any references to it to speed up the process of extraction
+            elem.clear()
+            while elem.getprevious() is not None:
+                del elem.getparent()[0]
 
+        # print summary statistics
+        print(f"Total number of publications found: {counter_publications}")
+        print(f"Total number of incomplete publications found: {counter_publications_incomplete}")
+    except etree.XMLSyntaxError as e:
+        print("Provided XML could not be parsed.")
