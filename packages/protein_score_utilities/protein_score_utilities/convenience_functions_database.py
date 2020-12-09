@@ -4,11 +4,8 @@ the module contains functionality to connect to a database, create tables, delet
 tables.
 """
 
-import sqlite3
+import sqlite3 as sl3
 import sys
-
-from sqlite3 import Error
-from sqlite3 import IntegrityError
 
 
 def create_database_connection(db_file):
@@ -23,9 +20,9 @@ def create_database_connection(db_file):
     """
 
     try:
-        conn = sqlite3.connect(db_file)
+        conn = sl3.connect(db_file)
         return conn
-    except Error as e:
+    except sl3.Error as e:
         print(e)
         sys.exit()
 
@@ -36,14 +33,14 @@ def create_table(db_conn, create_table_sql: str):
     while trying to create the table, the program is aborted.
 
     :param db_conn: connection to the database extracted publication information should be written to
-    :type db_conn: :class:~`sqlite3.Connection`
+    :type db_conn: sqlite3.Connection
     :param create_table_sql: SQL statement for generating table
     :type create_table_sql: str
     """
     try:
         c = db_conn.cursor()
         c.execute(create_table_sql)
-    except Error as e:
+    except sl3.Error as e:
         print(e)
         db_conn.close()
         sys.exit()
@@ -55,7 +52,7 @@ def delete_table_content(db_conn, table_name: str):
     encountered while trying to erase the content of the table, the program is aborted.
 
     :param db_conn: connection to the database extracted publication information should be written to
-    :type db_conn: :class:~`sqlite3.Connection`
+    :type db_conn: sqlite3.Connection
     :param table_name: name of the table of which content should be deleted
     :type table_name: str
     """
@@ -63,7 +60,7 @@ def delete_table_content(db_conn, table_name: str):
     try:
         c = db_conn.cursor()
         c.execute(f"DELETE FROM {table_name}")
-    except Error as e:
+    except sl3.Error as e:
         print(e)
         db_conn.close()
         sys.exit()
@@ -75,7 +72,7 @@ def execute_insert_statement(db_conn, stm: str, data: tuple):
     IntegrityErrors (e.g. through duplicated primary keys be encountered), the program will be aborted.
 
     :param db_conn: connection to database file
-    :type db_conn: connector
+    :type db_conn: sqlite3.Connection
     :param stm: name of the table of which content should be deleted
     :type stm: str
     :param data: tuple containing data to be inserted into statement and consequently database
@@ -85,14 +82,14 @@ def execute_insert_statement(db_conn, stm: str, data: tuple):
     try:
         c = db_conn.cursor()
         c.execute(stm, data)
-    except IntegrityError as e:
+    except sl3.IntegrityError as e:
         # errors are raised when an entry is attempted with an already existing primary key
         # todo: this is at the moment to support import to continue with existing data issues; going forward better
         #  handling of the data issues should be decided after investigation
         print(stm)
         print(data)
         pass
-    except Error as e:
+    except sl3.Error as e:
         print(e)
         db_conn.close()
         sys.exit()
